@@ -8,8 +8,7 @@ type Props = {
 const Error = ({ error, reset }: Props) => {
   return (
     <div>
-      <h2>Ошибка при загрузке</h2>
-      <p>{error.message}</p>
+      <p>Could not fetch the list of notes.{error.message}</p>
       <button onClick={reset}>Повторить попытку!</button>
     </div>
   );
