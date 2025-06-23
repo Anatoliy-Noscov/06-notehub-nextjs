@@ -1,3 +1,4 @@
+// src/app/notes/[id]/page.tsx
 import { fetchNoteById } from "@/lib/api/api";
 import {
   dehydrate,
@@ -6,18 +7,18 @@ import {
 } from "@tanstack/react-query";
 import NoteDetailsClient from "./NoteDetails.client";
 
-interface NoteDetailsProps {
-  params: { id: string };
-}
-
-export default async function NoteDetails({ params }: NoteDetailsProps) {
-  const noteId = +params.id;
+export default async function NotePage({ params }: { params: { id: string } }) {
   const queryClient = new QueryClient();
+  const noteId = Number(params.id);
 
-  await queryClient.prefetchQuery({
-    queryKey: ["note", noteId],
-    queryFn: () => fetchNoteById(noteId),
-  });
+  try {
+    await queryClient.prefetchQuery({
+      queryKey: ["note", noteId],
+      queryFn: () => fetchNoteById(noteId),
+    });
+  } catch (error) {
+    console.error("Failed to fetch note:", error);
+  }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

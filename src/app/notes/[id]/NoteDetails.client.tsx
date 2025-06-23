@@ -1,9 +1,10 @@
+// src/app/notes/[id]/NoteDetails.client.tsx
 "use client";
 
 import { fetchNoteById } from "@/lib/api/api";
-import Loader from "@/app/loading";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import Loader from "@/app/loading";
 import ErrorMessage from "./error";
 import css from "./NoteDetails.module.css";
 
@@ -27,11 +28,13 @@ export default function NoteDetailsClient() {
   }
 
   if (isLoading) return <Loader />;
-  if (isError && !note) {
-    return <p>Something went wrong.</p>;
+  if (isError || !note) {
+    return (
+      <ErrorMessage
+        error={new Error(isError ? "Failed to load note" : "Note not found")}
+      />
+    );
   }
-
-  if (!note) return <ErrorMessage error={new Error("Note not found")} />;
 
   return (
     <div className={css.container}>
