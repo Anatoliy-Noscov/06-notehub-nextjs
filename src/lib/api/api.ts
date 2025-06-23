@@ -1,53 +1,90 @@
 import axios from "axios";
 import { type Note, type CreateNoteValues } from "@/types/note";
+import toast from "react-hot-toast";
 
-axios.defaults.baseURL = "https://notehub-public.goit.study/api";
-axios.defaults.headers.common.Authorization = `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`;
+const apiClient = axios.create({
+  baseURL: "https://notehub-public.goit.study/api",
+});
 
-export interface NotesResponse {
+const API_TOKEN = `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`;
+
+apiClient.interceptors.request.use((config) => {
+  config.headers.Authorization = API_TOKEN;
+  return config;
+});
+
+interface FetchNotesResponse {
   notes: Note[];
   totalPages: number;
 }
 
-export const fetchNotes = async (
+export async function fetchNotes(
   search: string,
   page: number,
-): Promise<NotesResponse> => {
-  const params = {
-    page,
-    perPage: 12,
-    ...(search && { search }),
-  };
+): Promise<FetchNotesResponse | undefined> {
+  try {
+    const params = {
+      page,
+      perPage: 12,
+      ...(search.trim() && { search }),
+    };
 
-  const { data } = await axios.get<NotesResponse>("/notes", { params });
-  return data;
-};
+    const { data } = await apiClient.get<FetchNotesResponse>("/notes", {
+      params,
+    });
+    return data;
+  } catch (error) {
+    handleApiError(error);
+    return undefined;
+  }
+}
 
 export const fetchNoteById = async (id: number): Promise<Note> => {
-  const { data } = await axios.get<Note>(`/notes/${id}`);
-  return data;
-};
-
-export const createNote = async (noteData: CreateNoteValues): Promise<Note> => {
-  const { data } = await axios.post<Note>("/notes", noteData);
-  return data;
-};
-
-export const deleteNote = async (id: number): Promise<void> => {
-  await axios.delete(`/notes/${id}`);
-};
-
-export const showToast = (message: string, type: "success" | "error") => {
-  if (typeof window !== "undefined") {
-    if (type === "success") {
-      alert(`✅ ${message}`);
-    } else {
-      alert(`❌ ${message}`);
-    }
+  try {
+    const { data } = await apiClient.get<Note>(`/notes/${id}`);
+    return data;
+  } catch (error) {
+    handleApiError(error);
+    throw new Error("Failed to fetch note");
   }
 };
 
-// NEXT_PUBLIC_NOTEHUB_TOKEN =
-//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN2b2RudXk3Nzc3QGdtYWlsLmNvbSIsImlhdCI6MTc0OTc1OTcxOH0.57DaCmA2P8lLZOjkTKLSOECzkqHJpwzECB_QymOUK5k";
+export async function createNote(
+  noteData: CreateNoteValues,
+): Promise<Note | undefined> {
+  try {
+    const { data } = await apiClient.post<Note>("/notes", noteData);
+    toast.success("Note created successfully!");
+    return data;
+  } catch (error) {
+    handleApiError(error);
+    return undefined;
+  }
+}
 
-// ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}
+export async function deleteNote(id: number): Promise<void> {
+  try {
+    await apiClient.delete(`/notes/${id}`);
+    toast.success("Note deleted successfully!");
+  } catch (error) {
+    handleApiError(error);
+  }
+}
+
+function handleApiError(error: unknown) {
+  const message =
+    error instanceof Error ? error.message : "Unknown error occurred";
+  toast.error(message);
+  console.error("API Error:", error);
+}
+
+export const showToast = (message: string, type: "success" | "error") => {
+  if (typeof window === "undefined") return;
+  if (type === "success") {
+    toast.success(message);
+  } else {
+    toast.error(message);
+  }
+};
+
+// ["notes","",1] data is undefined

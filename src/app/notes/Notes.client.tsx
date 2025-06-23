@@ -1,17 +1,18 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
 import SearchBox from "@/components/SearchBox/SearchBox";
-import NoteModal from "@/components/NoteModal/NoteModal";
+import css from "./Note.client.module.css";
 import { fetchNotes } from "@/lib/api/api";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
-import css from "./Note.client.module.css";
+import NoteModal from "@/components/NoteModal/NoteModal";
+import Loader from "../loading";
+import ErrorMessage from "../error";
 import NoteForm from "@/components/NoteForm/NoteForm";
-import { keepPreviousData } from "@tanstack/react-query";
-import { AnimatePresence } from "framer-motion";
+
 interface NotesClientProps {
   initialQuery: string;
   initialPage: number;
@@ -21,51 +22,64 @@ export default function NotesClient({
   initialQuery,
   initialPage,
 }: NotesClientProps) {
-  const [searchTerm, setSearchTerm] = useState(initialQuery);
-  const [page, setPage] = useState(initialPage);
+  const [query, setQuery] = useState(initialQuery);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [debounceQuery] = useDebounce(query, 500);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [debouncedSearch] = useDebounce(searchTerm, 500);
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["notes", debouncedSearch, page],
-    queryFn: () => fetchNotes(debouncedSearch, page),
+  const { data, isLoading, isError, error, isSuccess } = useQuery({
+    queryKey: ["notes", debounceQuery, currentPage],
+    queryFn: () => fetchNotes(debounceQuery, currentPage),
     placeholderData: keepPreviousData,
+    refetchOnMount: false,
   });
 
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    setPage(1);
-  };
+  const notes = data?.notes ?? [];
+  const totalPages = data?.totalPages ?? 1;
+
+  function toggleModal() {
+    setIsModalOpen(!isModalOpen);
+  }
+
+  function closeModal() {
+    setIsModalOpen(false);
+  }
+
+  function handleChange(newQuery: string) {
+    setQuery(newQuery);
+    setCurrentPage(1);
+  }
 
   return (
-    <div className={css.container}>
+    <div className={css.app}>
       <div className={css.toolbar}>
-        <SearchBox value={searchTerm} onChange={handleSearchChange} />
-
-        {data?.totalPages && data.totalPages > 1 && (
+        <SearchBox value={query} onChange={handleChange} />
+        {totalPages > 1 && (
           <Pagination
-            currentPage={page}
-            totalPages={data.totalPages}
-            onPageChange={setPage}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
           />
         )}
-
-        <button className={css.button} onClick={() => setIsModalOpen(true)}>
+        <button className={css.button} onClick={toggleModal}>
           Create note +
         </button>
       </div>
 
-      {isLoading && <p>Loading...</p>}
-      {isError && <p>Error: {error.message}</p>}
-      {data && <NoteList notes={data.notes} />}
+      {isLoading && <Loader />}
+      {isError && (
+        <ErrorMessage
+          message={error.message}
+          onRetry={() => window.location.reload()}
+        />
+      )}
+      {isSuccess && <NoteList notes={notes} />}
 
-      <AnimatePresence>
-        {isModalOpen && (
-          <NoteModal onClose={() => setIsModalOpen(false)}>
-            <NoteForm onSuccess={() => setIsModalOpen(false)} />
-          </NoteModal>
-        )}
-      </AnimatePresence>
+      {isModalOpen && (
+        <NoteModal onClose={closeModal}>
+          <NoteForm onSuccess={closeModal} />
+        </NoteModal>
+      )}
     </div>
   );
 }
