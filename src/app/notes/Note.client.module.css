@@ -3,7 +3,6 @@
   max-width: 1280px;
   margin: 0px auto;
   padding: 0 16px 16px;
-  flex: 1;
 }
 
 .toolbar {
@@ -29,4 +28,13 @@
 
 .button:hover {
   background-color: #0b5ed7;
+}
+
+.container {
+  max-width: 800px;
+  margin: 32px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }

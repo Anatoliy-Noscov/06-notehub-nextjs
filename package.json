@@ -11,12 +11,15 @@
   "dependencies": {
     "@tanstack/react-query": "^5.80.7",
     "axios": "^1.10.0",
-    "formik": "^2.4.6",
+    "formik": "2.4.5",
+    "framer-motion": "^12.19.0",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hot-toast": "^2.5.2",
     "react-paginate": "^8.3.0",
-    "yup": "^1.6.1"
+    "use-debounce": "^10.0.5",
+    "yup": "1.3.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
