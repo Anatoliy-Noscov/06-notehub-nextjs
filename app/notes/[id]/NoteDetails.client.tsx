@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchNoteById } from "@/lib/api/api";
+import { fetchNoteById } from "../../../lib/api/api";
 import Loader from "../../loading";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
