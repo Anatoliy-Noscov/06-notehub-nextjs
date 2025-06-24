@@ -7,10 +7,15 @@ import { useParams } from "next/navigation";
 import ErrorMessage from "./error";
 import css from "./NoteDetails.module.css";
 
-export default function NoteDetailsClient() {
-  const { id } = useParams<{ id: string }>();
-  const noteId = Number(id);
+interface NoteDetailsClientProps {
+  initialId?: number;
+}
 
+export default function NoteDetailsClient({
+  initialId,
+}: NoteDetailsClientProps) {
+  const { id } = useParams<{ id: string }>();
+const noteId = initialId !== undefined ? initialId : Number(id);
   const {
     data: note,
     isLoading,

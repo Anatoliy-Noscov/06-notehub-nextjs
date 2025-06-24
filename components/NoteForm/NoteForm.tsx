@@ -8,6 +8,7 @@ import css from "./Note.Form.module.css";
 
 interface NoteFormProps {
   onSuccess: () => void;
+  onClose?: () => void;
 }
 
 const validationSchema = Yup.object().shape({
@@ -21,7 +22,7 @@ const validationSchema = Yup.object().shape({
     .required("Required"),
 });
 
-export default function NoteForm({ onSuccess }: NoteFormProps) {
+export default function NoteForm({ onSuccess, onClose }: NoteFormProps) {
   const queryClient = useQueryClient();
 
   const { mutate } = useMutation({
@@ -29,6 +30,7 @@ export default function NoteForm({ onSuccess }: NoteFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
       onSuccess();
+      onClose?.();
     },
   });
 
@@ -93,7 +95,7 @@ export default function NoteForm({ onSuccess }: NoteFormProps) {
             <button
               type="button"
               className={css.cancelButton}
-              onClick={onSuccess}
+              onClick={onClose || onSuccess}
             >
               Cancel
             </button>
