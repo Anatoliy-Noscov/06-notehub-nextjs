@@ -6,6 +6,8 @@ const apiClient = axios.create({
   baseURL: "https://notehub-public.goit.study/api",
 });
 
+// const API_TOKEN = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN2b2RudXk3Nzc3QGdtYWlsLmNvbSIsImlhdCI6MTc0OTc1OTcxOH0.57DaCmA2P8lLZOjkTKLSOECzkqHJpwzECB_QymOUK5k`;
+
 const API_TOKEN = `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`;
 
 // const API_TOKEN = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN2b2RudXk3Nzc3QGdtYWlsLmNvbSIsImlhdCI6MTc0OTc1OTcxOH0.57DaCmA2P8lLZOjkTKLSOECzkqHJpwzECB_QymOUK5k`;
@@ -46,7 +48,7 @@ export const fetchNoteById = async (id: number): Promise<Note> => {
     const { data } = await apiClient.get<Note>(`/notes/${id}`);
     return data;
   } catch (error) {
-    handleApiError(error);
+    console.error("API Error:", error);
     throw new Error("Failed to fetch note");
   }
 };
