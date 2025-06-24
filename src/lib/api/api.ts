@@ -8,6 +8,8 @@ const apiClient = axios.create({
 
 const API_TOKEN = `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`;
 
+// const API_TOKEN = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN2b2RudXk3Nzc3QGdtYWlsLmNvbSIsImlhdCI6MTc0OTc1OTcxOH0.57DaCmA2P8lLZOjkTKLSOECzkqHJpwzECB_QymOUK5k`;
+
 apiClient.interceptors.request.use((config) => {
   config.headers.Authorization = API_TOKEN;
   return config;
@@ -86,5 +88,3 @@ export const showToast = (message: string, type: "success" | "error") => {
     toast.error(message);
   }
 };
-
-// ["notes","",1] data is undefined
