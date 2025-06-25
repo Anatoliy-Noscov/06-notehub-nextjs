@@ -5,6 +5,7 @@ import ReactDOM from "react-dom";
 import NoteForm from "../NoteForm/NoteForm";
 import { CreateNoteValues } from "@/types/note";
 import css from "./NoteModal.module.css";
+import { useState } from "react";
 
 interface NoteModalProps {
   isOpen: boolean;
@@ -12,24 +13,39 @@ interface NoteModalProps {
   initialValues?: CreateNoteValues;
 }
 
-export default function NoteModal({ onClose, initialValues }: NoteModalProps) {
+export default function NoteModal({
+  isOpen,
+  onClose,
+  initialValues,
+}: NoteModalProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Escape") onClose();
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, [isOpen, onClose]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
   };
+
+  if (!isMounted || !isOpen) return null;
 
   return ReactDOM.createPortal(
     <div

@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNote, updateNote } from "../../lib/api";
 import { Note, CreateNoteValues } from "@/types/note";
 import toast from "react-hot-toast";
-import css from "./NoteForm.module.css";
+import css from "./Note.Form.module.css";
 
 const tagOptions = ["Todo", "Work", "Personal", "Meeting", "Shopping"] as const;
 
