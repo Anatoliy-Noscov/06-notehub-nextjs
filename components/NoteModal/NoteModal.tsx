@@ -7,6 +7,7 @@ import { CreateNoteValues } from "@/types/note";
 import css from "./NoteModal.module.css";
 
 interface NoteModalProps {
+  isOpen: boolean;
   onClose: () => void;
   initialValues?: CreateNoteValues;
 }

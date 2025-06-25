@@ -4,7 +4,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNote, updateNote } from "../../lib/api";
-import { Note } from "@/types/note";
+import { Note, CreateNoteValues } from "@/types/note";
 import toast from "react-hot-toast";
 import css from "./NoteForm.module.css";
 
@@ -12,8 +12,9 @@ const tagOptions = ["Todo", "Work", "Personal", "Meeting", "Shopping"] as const;
 
 interface NoteFormProps {
   note?: Note;
+  initialValues?: CreateNoteValues;
   onCancel: () => void;
-  onSubmitSuccess?: () => void;
+  onSuccess?: () => void;
 }
 
 const validationSchema = Yup.object({
@@ -26,40 +27,52 @@ const validationSchema = Yup.object({
 
 export default function NoteForm({
   note,
+  initialValues,
   onCancel,
-  onSubmitSuccess,
+  onSuccess,
 }: NoteFormProps) {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
-    mutationFn: note ? updateNote : createNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-      toast.success(note ? "Note updated!" : "Note created!");
-      onSubmitSuccess?.();
+  const mutation = useMutation<Note, Error, CreateNoteValues & { id?: number }>(
+    {
+      mutationFn: (values) => {
+        if (note) {
+          return updateNote(note.id, values);
+        } else {
+          return createNote(values);
+        }
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["notes"] });
+        toast.success(note ? "Note updated!" : "Note created!");
+        onSuccess?.();
+      },
+      onError: () => {
+        toast.error("Something went wrong");
+      },
     },
-    onError: () => {
-      toast.error("Something went wrong");
-    },
-  });
+  );
 
   return (
     <Formik
-      initialValues={{
-        title: note?.title || "",
-        content: note?.content || "",
-        tag: note?.tag || "Todo",
-      }}
-      validationSchema={validationSchema}
-      onSubmit={(values) => {
-        if (note) {
-          mutation.mutate({ id: note.id, ...values });
-        } else {
-          mutation.mutate(values);
+      initialValues={
+        initialValues || {
+          title: note?.title || "",
+          content: note?.content || "",
+          tag: note?.tag || "Todo",
         }
+      }
+      validationSchema={validationSchema}
+      onSubmit={(
+        values: CreateNoteValues,
+        { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void },
+      ) => {
+        mutation.mutate(values, {
+          onSettled: () => setSubmitting(false),
+        });
       }}
     >
-      {({ isSubmitting }) => (
+      {({ isSubmitting }: { isSubmitting: boolean }) => (
         <Form className={css.form}>
           <div className={css.formGroup}>
             <label htmlFor="title">Title</label>

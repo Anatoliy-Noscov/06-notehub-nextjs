@@ -23,13 +23,13 @@ export default function NotesClient({
   initialPage = 1,
 }: NotesClientProps) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [debouncedQuery] = useDebounce(searchQuery, 500); // Исправлено
   const [page, setPage] = useState(initialPage);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const debouncedQuery = useDebounce(searchQuery, 500);
 
   const { data: notesData } = useQuery({
     queryKey: ["notes", { query: debouncedQuery, page }],
-    queryFn: () => fetchNotes(debouncedQuery, page),
+    queryFn: () => fetchNotes(debouncedQuery, page), // Исправлено
     initialData:
       debouncedQuery === initialQuery && page === initialPage
         ? {

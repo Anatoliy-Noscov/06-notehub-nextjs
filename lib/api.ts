@@ -4,10 +4,15 @@ import toast from "react-hot-toast";
 
 axios.defaults.baseURL = process.env.NEXT_PUBLIC_NOTEHUB_API_URL;
 
+export interface FetchNotesResponse {
+  notes: Note[];
+  totalPages: number;
+}
+
 export async function fetchNotes(
   query: string,
   page: number,
-): Promise<{ notes: Note[]; totalPages: number }> {
+): Promise<FetchNotesResponse> {
   try {
     const res = await axios.get("/notes", {
       params: {
