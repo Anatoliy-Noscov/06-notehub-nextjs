@@ -7,7 +7,7 @@ export interface Note {
   updatedAt: string;
 }
 
-export type Tag = "low" | "medium" | "high";
+export type Tag = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
 
 export interface CreateNoteValues {
   title: string;

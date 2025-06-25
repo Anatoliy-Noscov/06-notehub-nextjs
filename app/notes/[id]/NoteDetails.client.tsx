@@ -8,14 +8,14 @@ import ErrorMessage from "./error";
 import css from "./NoteDetails.module.css";
 
 interface NoteDetailsClientProps {
-  initialId?: number;
+  id?: number;
 }
 
 export default function NoteDetailsClient({
-  initialId,
+  id: initialId,
 }: NoteDetailsClientProps) {
-  const { id } = useParams<{ id: string }>();
-  const noteId = initialId !== undefined ? initialId : Number(id);
+  const { id: paramId } = useParams<{ id: string }>();
+  const noteId = initialId !== undefined ? initialId : Number(paramId);
   const {
     data: note,
     isLoading,
