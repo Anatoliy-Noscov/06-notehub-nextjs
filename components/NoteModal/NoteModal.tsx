@@ -1,66 +1,41 @@
-"use client";
-
-import { useEffect } from "react";
-import ReactDOM from "react-dom";
-import NoteForm from "../NoteForm/NoteForm";
-import { CreateNoteValues } from "@/types/note";
+import { createPortal } from "react-dom";
 import css from "./NoteModal.module.css";
-import { useState } from "react";
+import NoteForm from "../NoteForm/NoteForm";
+import { useEffect } from "react";
 
-interface NoteModalProps {
-  isOpen: boolean;
+export interface NoteModalProps {
   onClose: () => void;
-  initialValues?: CreateNoteValues;
 }
 
-export default function NoteModal({
-  isOpen,
-  onClose,
-  initialValues,
-}: NoteModalProps) {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    return () => setIsMounted(false);
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Escape") onClose();
-    };
-
-    if (isOpen) {
-      window.addEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "hidden";
+export default function NoteModal({ onClose }: NoteModalProps) {
+  function handleBackdrop(event: React.MouseEvent<HTMLDivElement>) {
+    if (event.target === event.currentTarget) {
+      onClose();
     }
+  }
 
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+    document.addEventListener("keydown", handleEscape);
+    document.body.style.overflow = "hidden";
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "";
     };
-  }, [isOpen, onClose]);
+  }, [onClose]);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
-  if (!isMounted || !isOpen) return null;
-
-  return ReactDOM.createPortal(
+  return createPortal(
     <div
       className={css.backdrop}
       role="dialog"
       aria-modal="true"
-      onClick={handleBackdropClick}
+      onClick={handleBackdrop}
     >
-      <div className={css.modal}>
-        <NoteForm
-          initialValues={initialValues}
-          onSuccess={onClose}
-          onCancel={onClose}
-        />
-      </div>
+      <div className={css.modal}>{<NoteForm onClose={onClose} />}</div>
     </div>,
     document.body,
   );

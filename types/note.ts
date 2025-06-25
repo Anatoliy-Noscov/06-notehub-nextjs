@@ -7,15 +7,10 @@ export interface Note {
   updatedAt: string;
 }
 
-export type Tag = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
-
 export interface CreateNoteValues {
   title: string;
-  content: string;
+  content?: string;
   tag: Tag;
 }
 
-export interface FetchNotesResponse {
-  notes: Note[];
-  totalPages: number;
-}
+type Tag = "Work" | "Personal" | "Meeting" | "Shopping" | "Todo";

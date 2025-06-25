@@ -1,78 +1,65 @@
-"use client";
-
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createNote, updateNote } from "../../lib/api";
-import { Note, CreateNoteValues } from "@/types/note";
-import toast from "react-hot-toast";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import { FormikHelpers } from "formik/dist/types";
 import css from "./Note.Form.module.css";
+import * as Yup from "yup";
+import type { CreateNoteValues } from "../../types/note";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote } from "../../lib/api";
+import toast, { Toaster } from "react-hot-toast";
 
-const tagOptions = ["Todo", "Work", "Personal", "Meeting", "Shopping"] as const;
-
-interface NoteFormProps {
-  note?: Note;
-  initialValues?: CreateNoteValues;
-  onCancel: () => void;
-  onSuccess?: () => void;
-}
-
-const validationSchema = Yup.object({
-  tag: Yup.string().oneOf(tagOptions).required(),
+const validationSchema = Yup.object().shape({
+  title: Yup.string()
+    .min(3, "To short!")
+    .max(50, "To long!")
+    .required("Title is required!"),
+  content: Yup.string().max(500),
+  tag: Yup.string()
+    .oneOf(["Work", "Personal", "Meeting", "Shopping", "Todo"])
+    .required("Tag is required!"),
 });
 
-export default function NoteForm({
-  note,
-  initialValues,
-  onCancel,
-  onSuccess,
-}: NoteFormProps) {
+const initialValues: CreateNoteValues = {
+  title: "",
+  content: "",
+  tag: "Todo",
+};
+
+export interface NoteFormProps {
+  onClose: () => void;
+}
+
+export default function NoteForm({ onClose }: NoteFormProps) {
   const queryClient = useQueryClient();
-
-  const mutation = useMutation<Note, Error, CreateNoteValues & { id?: number }>(
-    {
-      mutationFn: (values) => {
-        if (note) {
-          return updateNote(note.id, values);
-        } else {
-          return createNote(values);
-        }
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["notes"] });
-        toast.success(note ? "Note updated!" : "Note created!");
-        onSuccess?.();
-      },
-      onError: () => {
-        toast.error("Something went wrong");
-      },
+  const mutationCreate = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      onClose();
+      toast.success("Success! Your note has been saved.");
     },
-  );
+    onError: () => {
+      toast.error("Oops! The note couldn't be saved.");
+    },
+  });
 
+  function handleSubmit(
+    values: CreateNoteValues,
+    actions: FormikHelpers<CreateNoteValues>,
+  ) {
+    mutationCreate.mutate(values);
+    actions.resetForm();
+  }
   return (
-    <Formik
-      initialValues={
-        initialValues || {
-          title: note?.title || "",
-          content: note?.content || "",
-          tag: note?.tag || "Todo",
-        }
-      }
-      validationSchema={validationSchema}
-      onSubmit={(
-        values: CreateNoteValues,
-        { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void },
-      ) => {
-        mutation.mutate(values, {
-          onSettled: () => setSubmitting(false),
-        });
-      }}
-    >
-      {({ isSubmitting }: { isSubmitting: boolean }) => (
+    <>
+      <Formik
+        initialValues={initialValues}
+        onSubmit={handleSubmit}
+        validationSchema={validationSchema}
+      >
         <Form className={css.form}>
           <div className={css.formGroup}>
             <label htmlFor="title">Title</label>
-            <Field id="title" name="title" type="text" className={css.input} />
+            <Field id="title" type="text" name="title" className={css.input} />
             <ErrorMessage name="title" component="span" className={css.error} />
           </div>
 
@@ -82,7 +69,7 @@ export default function NoteForm({
               as="textarea"
               id="content"
               name="content"
-              rows={6}
+              rows={8}
               className={css.textarea}
             />
             <ErrorMessage
@@ -95,11 +82,11 @@ export default function NoteForm({
           <div className={css.formGroup}>
             <label htmlFor="tag">Tag</label>
             <Field as="select" id="tag" name="tag" className={css.select}>
-              {tagOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
+              <option value="Todo">Todo</option>
+              <option value="Work">Work</option>
+              <option value="Personal">Personal</option>
+              <option value="Meeting">Meeting</option>
+              <option value="Shopping">Shopping</option>
             </Field>
             <ErrorMessage name="tag" component="span" className={css.error} />
           </div>
@@ -108,27 +95,31 @@ export default function NoteForm({
             <button
               type="button"
               className={css.cancelButton}
-              onClick={onCancel}
-              disabled={isSubmitting}
+              onClick={onClose}
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className={css.submitButton}
-              disabled={isSubmitting}
-            >
-              {isSubmitting
-                ? note
-                  ? "Updating..."
-                  : "Creating..."
-                : note
-                  ? "Update"
-                  : "Create"}
-            </button>
+            {mutationCreate.isPending ? (
+              <button
+                type="submit"
+                className={css.submitButton}
+                disabled={true}
+              >
+                Note creation...
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className={css.submitButton}
+                disabled={false}
+              >
+                Create note
+              </button>
+            )}
           </div>
         </Form>
-      )}
-    </Formik>
+      </Formik>
+      <Toaster />
+    </>
   );
 }
