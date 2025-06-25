@@ -30,7 +30,7 @@ export default function NotesClient({
   const { data: notesData } = useQuery<FetchNotesResponse>({
     queryKey: ["notes", { query: debouncedQuery, page }],
     queryFn: () => fetchNotes(debouncedQuery, page),
-    initialData: initialData,
+    initialData,
   });
 
   const notes = notesData?.notes || [];

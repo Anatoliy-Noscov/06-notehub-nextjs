@@ -1,41 +1,29 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { fetchNoteById } from "../../../lib/api";
 import Loader from "../../loading";
-import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import ErrorMessage from "./error";
 import css from "./NoteDetails.module.css";
 
-interface NoteDetailsClientProps {
-  id?: number;
-}
+export default function NoteDetailsClient({ id }: { id: number }) {
+  const params = useParams();
+  const noteId = id || Number(params.id);
 
-export default function NoteDetailsClient({
-  id: initialId,
-}: NoteDetailsClientProps) {
-  const { id: paramId } = useParams<{ id: string }>();
-  const noteId = initialId !== undefined ? initialId : Number(paramId);
   const {
     data: note,
     isLoading,
     isError,
+    error,
   } = useQuery({
     queryKey: ["note", noteId],
     queryFn: () => fetchNoteById(noteId),
-    refetchOnMount: false,
-    enabled: !isNaN(noteId),
+    enabled: !!noteId,
   });
 
-  if (isNaN(noteId)) {
-    return <ErrorMessage error={new Error("Invalid note ID")} />;
-  }
-
   if (isLoading) return <Loader />;
-  if (isError && !note) {
-    return <p>Something went wrong.</p>;
-  }
-
+  if (isError) return <ErrorMessage error={error} />;
   if (!note) return <ErrorMessage error={new Error("Note not found")} />;
 
   return (
@@ -43,11 +31,13 @@ export default function NoteDetailsClient({
       <div className={css.item}>
         <div className={css.header}>
           <h2>{note.title}</h2>
-          <p className={css.tag}>{String(note.tag)}</p>
+          <p className={css.tag}>{note.tag}</p>
           <button className={css.editBtn}>Edit note</button>
         </div>
         <p className={css.content}>{note.content}</p>
-        <p className={css.date}>Created date: {note.createdAt}</p>
+        <p className={css.date}>
+          Created: {new Date(note.createdAt).toLocaleDateString()}
+        </p>
       </div>
     </div>
   );

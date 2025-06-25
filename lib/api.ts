@@ -3,6 +3,8 @@ import type { CreateNoteValues, Note } from "@/types/note";
 import toast from "react-hot-toast";
 
 axios.defaults.baseURL = process.env.NEXT_PUBLIC_NOTEHUB_API_URL;
+axios.defaults.headers.common["Authorization"] =
+  `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`;
 
 export interface FetchNotesResponse {
   notes: Note[];
@@ -20,9 +22,6 @@ export async function fetchNotes(
         page,
         perPage: 10,
       },
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
-      },
     });
     return res.data;
   } catch (error) {
@@ -33,11 +32,7 @@ export async function fetchNotes(
 
 export async function fetchNoteById(id: number): Promise<Note> {
   try {
-    const res = await axios.get(`/notes/${id}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
-      },
-    });
+    const res = await axios.get(`/notes/${id}`);
     return res.data;
   } catch (error) {
     toast.error(error instanceof Error ? error.message : String(error));
@@ -47,11 +42,7 @@ export async function fetchNoteById(id: number): Promise<Note> {
 
 export async function createNote(values: CreateNoteValues): Promise<Note> {
   try {
-    const res = await axios.post("/notes", values, {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
-      },
-    });
+    const res = await axios.post("/notes", values);
     return res.data;
   } catch (error) {
     toast.error(error instanceof Error ? error.message : String(error));
@@ -64,11 +55,7 @@ export async function updateNote(
   values: CreateNoteValues,
 ): Promise<Note> {
   try {
-    const res = await axios.put(`/notes/${id}`, values, {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
-      },
-    });
+    const res = await axios.put(`/notes/${id}`, values);
     return res.data;
   } catch (error) {
     toast.error(error instanceof Error ? error.message : String(error));
@@ -78,11 +65,7 @@ export async function updateNote(
 
 export async function deleteNote(id: number): Promise<void> {
   try {
-    await axios.delete(`/notes/${id}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
-      },
-    });
+    await axios.delete(`/notes/${id}`);
   } catch (error) {
     toast.error(error instanceof Error ? error.message : String(error));
     throw error;
