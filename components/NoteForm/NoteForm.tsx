@@ -18,11 +18,7 @@ interface NoteFormProps {
 }
 
 const validationSchema = Yup.object({
-  title: Yup.string().required("Title is required"),
-  content: Yup.string().required("Content is required"),
-  tag: Yup.string()
-    .oneOf([...tagOptions])
-    .required("Tag is required"),
+  tag: Yup.string().oneOf(tagOptions).required(),
 });
 
 export default function NoteForm({

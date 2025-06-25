@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchNotes } from "../../lib/api";
-import { Note } from "types/note";
 import NoteList from "../../components/NoteList/NoteList";
 import SearchBox from "../../components/SearchBox/SearchBox";
 import Pagination from "../../components/Pagination/Pagination";
@@ -10,34 +9,28 @@ import NoteModal from "../../components/NoteModal/NoteModal";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
 import css from "./Note.client.module.css";
+import { FetchNotesResponse } from "types/note";
 
 interface NotesClientProps {
-  initialNotes: Note[];
+  initialData?: FetchNotesResponse;
   initialQuery?: string;
   initialPage?: number;
 }
 
 export default function NotesClient({
-  initialNotes,
+  initialData,
   initialQuery = "",
   initialPage = 1,
 }: NotesClientProps) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [debouncedQuery] = useDebounce(searchQuery, 500); // Исправлено
+  const [debouncedQuery] = useDebounce(searchQuery, 500);
   const [page, setPage] = useState(initialPage);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: notesData } = useQuery({
+  const { data: notesData } = useQuery<FetchNotesResponse>({
     queryKey: ["notes", { query: debouncedQuery, page }],
-    queryFn: () => fetchNotes(debouncedQuery, page), // Исправлено
-    initialData:
-      debouncedQuery === initialQuery && page === initialPage
-        ? {
-            notes: initialNotes,
-            totalPages: Math.ceil(initialNotes.length / 10),
-          }
-        : undefined,
-    placeholderData: { notes: [], totalPages: 1 },
+    queryFn: () => fetchNotes(debouncedQuery, page),
+    initialData: initialData,
   });
 
   const notes = notesData?.notes || [];
