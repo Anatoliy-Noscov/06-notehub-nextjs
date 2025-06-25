@@ -15,7 +15,7 @@ export default function NoteDetailsClient({
   initialId,
 }: NoteDetailsClientProps) {
   const { id } = useParams<{ id: string }>();
-const noteId = initialId !== undefined ? initialId : Number(id);
+  const noteId = initialId !== undefined ? initialId : Number(id);
   const {
     data: note,
     isLoading,

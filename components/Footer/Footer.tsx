@@ -1,31 +1,14 @@
-// import css from "./Footer.module.css";
+"use client";
 
-// export default function footer() {
-//   return (
-//     <footer className={css.footer}>
-//       <div className={css.content}>
-//         <p>© {new Date().getFullYear()} NoteHub. All rights reserved.</p>
-//         <div className={css.wrap}>
-//           <p>Developer: your name</p>
-//           <p>
-//             Contact us:
-//             <a href="<mailto:student@notehub.app>">student@notehub.app</a>
-//           </p>
-//         </div>
-//       </div>
-//     </footer>
-//   );
-// }
+import css from "../Footer/Footer.module.css";
 
-import styles from "./Footer.module.css";
-
-export function Footer() {
+export default function Footer() {
   return (
-    <footer className={styles.footer}>
-      <p>© {new Date().getFullYear()} NoteHub. All rights reserved.</p>
+    <footer className={css.footer}>
       <p>
         Contact us: <a href="mailto:student@notehub.app">student@notehub.app</a>
       </p>
+      <p>&copy; 2025 NoteHub.</p>
     </footer>
   );
 }

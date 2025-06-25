@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "../components/Header/Header";
 import TanStackProvider from "../components/TanStackProvider/TanStackProvider";
-import { Footer }  from "../components/Footer/Footer";
+import Footer from "../components/Footer/Footer";
 import ToasterProvider from "./Toaster";
 
 export const metadata: Metadata = {

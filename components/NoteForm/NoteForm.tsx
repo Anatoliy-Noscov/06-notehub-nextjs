@@ -3,12 +3,13 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNote } from "../../lib/api";
-import { type CreateNoteValues } from "@/types/note";
+import { CreateNoteValues } from "@/types/note";
 import css from "./Note.Form.module.css";
 
-interface NoteFormProps {
+export interface NoteFormProps {
   onSuccess: () => void;
-  onClose?: () => void;
+  onCancel: () => void;
+  initialValues?: CreateNoteValues;
 }
 
 const validationSchema = Yup.object().shape({
@@ -18,11 +19,15 @@ const validationSchema = Yup.object().shape({
     .required("Title is required"),
   content: Yup.string().max(500, "Too Long!"),
   tag: Yup.string()
-    .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"])
-    .required("Required"),
+    .oneOf(["low", "medium", "high"])
+    .required("Tag is required"),
 });
 
-export default function NoteForm({ onSuccess, onClose }: NoteFormProps) {
+export default function NoteForm({
+  onSuccess,
+  onCancel,
+  initialValues,
+}: NoteFormProps) {
   const queryClient = useQueryClient();
 
   const { mutate } = useMutation({
@@ -30,7 +35,6 @@ export default function NoteForm({ onSuccess, onClose }: NoteFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
       onSuccess();
-      onClose?.();
     },
   });
 
@@ -39,19 +43,19 @@ export default function NoteForm({ onSuccess, onClose }: NoteFormProps) {
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void },
   ) => {
     mutate(values, {
-      onSettled: () => {
-        setSubmitting(false);
-      },
+      onSettled: () => setSubmitting(false),
     });
   };
 
+  const defaultValues = (initialValues ?? {
+    title: "",
+    content: "",
+    tag: "low",
+  }) as CreateNoteValues;
+
   return (
     <Formik
-      initialValues={{
-        title: "",
-        content: "",
-        tag: "Todo",
-      }}
+      initialValues={defaultValues}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
@@ -59,7 +63,7 @@ export default function NoteForm({ onSuccess, onClose }: NoteFormProps) {
         <Form className={css.form}>
           <div className={css.formGroup}>
             <label htmlFor="title">Title</label>
-            <Field id="title" type="text" name="title" className={css.input} />
+            <Field id="title" name="title" type="text" className={css.input} />
             <ErrorMessage name="title" component="span" className={css.error} />
           </div>
 
@@ -69,7 +73,7 @@ export default function NoteForm({ onSuccess, onClose }: NoteFormProps) {
               as="textarea"
               id="content"
               name="content"
-              rows={8}
+              rows={6}
               className={css.textarea}
             />
             <ErrorMessage
@@ -82,11 +86,9 @@ export default function NoteForm({ onSuccess, onClose }: NoteFormProps) {
           <div className={css.formGroup}>
             <label htmlFor="tag">Tag</label>
             <Field as="select" id="tag" name="tag" className={css.select}>
-              <option value="Todo">Todo</option>
-              <option value="Work">Work</option>
-              <option value="Personal">Personal</option>
-              <option value="Meeting">Meeting</option>
-              <option value="Shopping">Shopping</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
             </Field>
             <ErrorMessage name="tag" component="span" className={css.error} />
           </div>
@@ -95,7 +97,8 @@ export default function NoteForm({ onSuccess, onClose }: NoteFormProps) {
             <button
               type="button"
               className={css.cancelButton}
-              onClick={onClose || onSuccess}
+              onClick={onCancel}
+              disabled={isSubmitting}
             >
               Cancel
             </button>
@@ -104,7 +107,7 @@ export default function NoteForm({ onSuccess, onClose }: NoteFormProps) {
               className={css.submitButton}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Creating..." : "Create note"}
+              {isSubmitting ? "Creating..." : "Create Note"}
             </button>
           </div>
         </Form>
