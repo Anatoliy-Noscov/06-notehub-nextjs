@@ -11,37 +11,44 @@ import { useDebounce } from "use-debounce";
 import NoteModal from "../../components/NoteModal/NoteModal";
 import Loader from "../loading";
 import ErrorMessage from "./error";
+import { Note } from "types/note";
 
 interface NotesClientProps {
+  initialNotes: Note[];
   initialQuery: string;
   initialPage: number;
+  initialTotalPages: number;
 }
 
 export default function NotesClient({
+  initialNotes,
   initialQuery,
   initialPage,
+  initialTotalPages,
 }: NotesClientProps) {
   const [query, setQuery] = useState<string>(initialQuery);
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
-  const [debounceQuery] = useDebounce(query, 500);
+  const [debouncedQuery] = useDebounce(query, 500);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const { data, isLoading, isError, error, isSuccess } = useQuery({
-    queryKey: ["notes", debounceQuery, currentPage],
-    queryFn: () => fetchNotes(debounceQuery, currentPage),
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["notes", debouncedQuery, currentPage],
+    queryFn: () => fetchNotes(debouncedQuery, currentPage),
     placeholderData: keepPreviousData,
+    initialData: { notes: initialNotes, totalPages: initialTotalPages },
     refetchOnMount: false,
   });
+
+  const notes = data?.notes ?? initialNotes;
+  const totalPages = data?.totalPages ?? initialTotalPages;
 
   function toggleModal() {
     setIsModalOpen(!isModalOpen);
   }
+
   function closeModal() {
     setIsModalOpen(false);
   }
-
-  const notesRequest = data?.notes ?? [];
-  const totalPage = data?.totalPages ?? 1;
 
   function handleChange(newQuery: string) {
     setQuery(newQuery);
@@ -52,9 +59,9 @@ export default function NotesClient({
     <div className={css.app}>
       <div className={css.toolbar}>
         <SearchBox value={query} onChange={handleChange} />
-        {totalPage > 1 && (
+        {totalPages > 1 && (
           <Pagination
-            totalPages={totalPage}
+            totalPages={totalPages}
             currentPage={currentPage}
             setPage={setCurrentPage}
           />
@@ -65,9 +72,8 @@ export default function NotesClient({
       </div>
 
       {isLoading && <Loader />}
-
       {isError && <ErrorMessage error={error} />}
-      {isSuccess && <NoteList notes={notesRequest} />}
+      {!isLoading && !isError && <NoteList notes={notes} />}
       {isModalOpen && <NoteModal onClose={closeModal} />}
     </div>
   );
